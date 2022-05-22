@@ -1,9 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-
 <h1 class="title">
   Olá, {{name}}!
+  Seu personagem é {{character}}.
+  <br>
 </h1>
-<a href="{{url_for('add_guesses') }}"> Add</a>
+<h2>Descubra a tendência e personagens de outros convidados para pontuar :) </h2> <br>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+     <div class="notification is-link">
+        {{ messages[0] }}
+     </div>
+{% endif %}
+{% endwith %}
+<a href="{{url_for('add_guesses') }}"> Add</a> <br>
+<a href="{{url_for('edit') }}"> Edit</a>
+
 {% endblock %}

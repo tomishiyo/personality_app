@@ -5,39 +5,23 @@
 <h1 class="title">
   ADICIONAR
 </h1>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+     <div class="notification is-danger">
+        {{ messages[0] }}
+     </div>
+{% endif %}
+{% endwith %}
 <form method="POST" action="">
   <label for="pessoas">Convidado:</label>
   <select name="pessoas" id="pessoas">
-    <option value="ale">Alexandre Lele</option>
-    <option value="aloadir">Aloadir</option>
-    <option value="analima">Ana Lima</option>
-    <option value="dedi">André Dedi</option>
-    <option value="bia">Bia</option>
-    <option value="cica">Ciça</option>
-    <option value="emy">Emy</option>
-    <option value="hindi">Felipe Hindi</option>
-    <option value="shimada">Guilherme Shimada</option>
-    <option value="iann">Iann</option>
-    <option value="iuri">Iuri</option>
-    <option value="jessica">Jéssica</option>
-    <option value="leodallacosta">Leonardo Dalla Costa</option>
-    <option value="teti">Leonardo Teti</option>
-    <option value="pereira">Lucas Pereira</option>
-    <option value="luigi">Luigi</option>
-    <option value="maga">Magali</option>
-    <option value="marco">Marco</option>
-    <option value="nath">Nath</option>
-    <option value="tavinho">Octávio Tavinho</option>
-    <option value="plinio">Plínio</option>
-    <option value="rosa">Rafael Rosa</option>
-    <option value="jeremias">Ricardo Jeremias</option>
-    <option value="ricardo">Ricardo Vianna</option>
-    <option value="stefani">Stefani</option>
-    <option value="tata">Thaís Tata</option>
-    <option value="liico">Thales Liico</option>
-    <option value="thinos">Thomas</option>
-    <option value="vagner">Vagner</option>
-    <option value="pascotto">Vinícius Pascotto</option>
+  {% for guest in guests %}
+    {% if guest.username != user%}
+  <option value="{{guest.username}}">{{guest.name}}</option>
+    {% else %}
+      {{pass}}
+    {% endif %}
+  {% endfor %}
   </select>
   <br>
   <label for="alignment">Tendência:</label>

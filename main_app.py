@@ -16,6 +16,7 @@ login_manager = LoginManager()
 login_manager.login_view = '/'
 login_manager.init_app(app)
 
+# TODO: Fix the add/edit guess bug. Problem is storing a dictionary in the SQL table; try to store it in JSON.
 
 class User(UserMixin, user_db.Model):
     identifier = user_db.Column(user_db.Integer(), primary_key=True)
@@ -29,12 +30,6 @@ class User(UserMixin, user_db.Model):
 
     def get_id(self):
            return self.identifier
-
-
-# def add_example_user():
-#     user = User(username='admin', password='admin', name='admin')
-#     user_db.session.add(user)
-#     user_db.session.commit()
 
 
 def read_answer_keys():
@@ -86,7 +81,7 @@ def main():
     @app.route('/profile')
     @login_required
     def profile_page():
-        return render_template('profile.html', name=current_user.name)
+        return render_template('profile.html', name=current_user.name, character=current_user.character.capitalize())
 
     @app.route('/logout')
     @login_required
@@ -98,15 +93,34 @@ def main():
     @login_required
     def add_guesses():
         if request.method == 'GET':
-            return render_template('add.html')
+            guests = User.query.all()
+            return render_template('add.html', guests=guests, user=current_user.username)
         else:
             form = request.form
             person = form['pessoas']
             alignment = form['alignment']
             character = form['character']
-            current_user.guesses = {person: {'alignment': alignment, 'character': character}}
-            user_db.session.commit()
-            return form
+            if person not in current_user.guesses:
+                current_user.guesses[person] = {'alignment': alignment, 'character': character}
+                user_db.session.commit()
+                flash(f'Convidado adicionado com sucesso')
+                return redirect(url_for('profile_page'))
+            else:
+                flash('Você já adicionou essa pessoa')
+                return redirect(url_for('add_guesses'))
+
+
+    @app.route('/edit')
+    @login_required
+    def edit():
+        guesses = current_user.guesses
+        if guesses:
+            guesses_names = [guest for guest in guesses]
+            return render_template('edit.html', guesses_names = guesses_names)
+        else:
+            flash('Você ainda não adicionou ninguém!')
+            return redirect(url_for('profile_page'))
+
 
     app.run(host='192.168.0.97', debug=True)
 

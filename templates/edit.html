@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="title">
+  EDITAR
+</h1>
+{% for guess in guesses_names %}
+<p>{{guess}}</p>
+{% endfor %}
+{% endblock %}
