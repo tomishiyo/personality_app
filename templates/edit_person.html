@@ -3,27 +3,10 @@
 {% block content %}
 
 <h1 class="title">
-  ADICIONAR
+  EDITAR {{guess}}
 </h1>
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-     <div class="notification is-danger">
-        {{ messages[0] }}
-     </div>
-{% endif %}
-{% endwith %}
+
 <form method="POST" action="">
-  <label for="pessoas">Convidado:</label>
-  <select name="pessoas" id="pessoas">
-  {% for guest in guests %}
-    {% if guest.username != user%}
-  <option value="{{guest.username}}">{{guest.name}}</option>
-    {% else %}
-      {{pass}}
-    {% endif %}
-  {% endfor %}
-  </select>
-  <br>
   <label for="alignment">Tendência:</label>
   <select name="alignment" id="alignment">
     <option value="lb">Leal e Bom</option>
@@ -42,5 +25,4 @@
   <br>
   <input type="submit" value="Enviar"> <a href="{{url_for('profile_page')}}">Cancelar</a>
   </form>
-
 {% endblock %}

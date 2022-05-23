@@ -1,4 +1,5 @@
 import sys
+import pickle
 
 from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_login import UserMixin, LoginManager, login_user, current_user, login_required, logout_user
@@ -16,20 +17,38 @@ login_manager = LoginManager()
 login_manager.login_view = '/'
 login_manager.init_app(app)
 
-# TODO: Fix the add/edit guess bug. Problem is storing a dictionary in the SQL table; try to store it in JSON.
+# TODO: Change EDIT page to show current values for the guess
+# TODO: Create function to compute all points and sum up the results
 
 class User(UserMixin, user_db.Model):
     identifier = user_db.Column(user_db.Integer(), primary_key=True)
     username = user_db.Column(user_db.String(), unique=True)
     name = user_db.Column(user_db.String())
     password = user_db.Column(user_db.String())
-    guesses = user_db.Column(user_db.PickleType())
     character = user_db.Column(user_db.String())
     alignment = user_db.Column(user_db.String())
     circle = user_db.Column(user_db.String())
 
     def get_id(self):
            return self.identifier
+
+
+def init_answers_db(database_name):
+    try:
+        with open(database_name, 'rb') as file:
+            database = pickle.load(file)
+            return database
+    except FileNotFoundError:
+        return {}
+
+
+def save_answers_db(dictionary):
+    save_name = 'answerdb'
+    try:
+        with open(save_name, 'wb') as file:
+            pickle.dump(dictionary, file)
+    except Exception as error:
+        print('Unexpected exception: ', error)
 
 
 def read_answer_keys():
@@ -54,6 +73,8 @@ def read_answer_keys():
 def main():
     answer_keys = read_answer_keys()
     user_db.create_all()
+
+    answers_dict = init_answers_db('answerdb')
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -100,9 +121,16 @@ def main():
             person = form['pessoas']
             alignment = form['alignment']
             character = form['character']
-            if person not in current_user.guesses:
-                current_user.guesses[person] = {'alignment': alignment, 'character': character}
-                user_db.session.commit()
+
+            if current_user.username not in answers_dict:
+                answers_dict[current_user.username] = {}
+                user_dict = answers_dict[current_user.username]
+            else:
+                user_dict = answers_dict[current_user.username]
+
+            if person not in user_dict:
+                user_dict[person] = {'alignment': alignment, 'character': character}
+                save_answers_db(answers_dict)
                 flash(f'Convidado adicionado com sucesso')
                 return redirect(url_for('profile_page'))
             else:
@@ -113,13 +141,31 @@ def main():
     @app.route('/edit')
     @login_required
     def edit():
-        guesses = current_user.guesses
-        if guesses:
-            guesses_names = [guest for guest in guesses]
-            return render_template('edit.html', guesses_names = guesses_names)
-        else:
+        user = current_user.username
+        try:
+            guesses_names = [guest for guest in answers_dict[user]]
+            return render_template('edit_main.html', guesses_names=guesses_names)
+        except KeyError:
             flash('Você ainda não adicionou ninguém!')
             return redirect(url_for('profile_page'))
+
+
+    @app.route('/edit/<i>', methods=['GET', 'POST'])
+    @login_required
+    def edit_guess(i):
+        if request.method == 'GET':
+            return render_template('edit_person.html', guess=i)
+        else:
+            user_dict = answers_dict[current_user.username]
+            form = request.form
+            alignment = form['alignment']
+            character = form['character']
+            user_dict[i] = {'alignment': alignment, 'character': character}
+            save_answers_db(answers_dict)
+            flash('Convidado editado com sucesso')
+            return redirect(url_for('profile_page'))
+
+
 
 
     app.run(host='192.168.0.97', debug=True)

@@ -6,6 +6,6 @@
   EDITAR
 </h1>
 {% for guess in guesses_names %}
-<p>{{guess}}</p>
+<a href="{{ url_for('edit_guess', i=guess) }}">{{guess}}</a><br>
 {% endfor %}
 {% endblock %}
