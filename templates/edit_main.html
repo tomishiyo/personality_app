@@ -5,7 +5,7 @@
 <h1 class="title">
   EDITAR
 </h1>
-{% for guess in guesses_names %}
-<a href="{{ url_for('edit_guess', i=guess) }}">{{guess}}</a><br>
+{% for user in usernames %}
+<a href="{{ url_for('edit_guess', i=user.username) }}">{{user.name}}</a><br>
 {% endfor %}
 {% endblock %}

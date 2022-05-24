@@ -3,8 +3,13 @@
 {% block content %}
 
 <h1 class="title">
-  EDITAR {{guess}}
+  EDITAR {{guess.name}}
 </h1>
+<h2>
+  <b>Tendência</b>: {{alignment.upper()}} <br>
+  <b>Personagem</b>: {{character.capitalize()}}<br>
+</h2>
+<hr>
 
 <form method="POST" action="">
   <label for="alignment">Tendência:</label>

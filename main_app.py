@@ -17,7 +17,6 @@ login_manager = LoginManager()
 login_manager.login_view = '/'
 login_manager.init_app(app)
 
-# TODO: Change EDIT page to show current values for the guess
 # TODO: Create function to compute all points and sum up the results
 
 class User(UserMixin, user_db.Model):
@@ -34,6 +33,7 @@ class User(UserMixin, user_db.Model):
 
 
 def init_answers_db(database_name):
+    """Read database from file or create the file is none is found"""
     try:
         with open(database_name, 'rb') as file:
             database = pickle.load(file)
@@ -43,6 +43,7 @@ def init_answers_db(database_name):
 
 
 def save_answers_db(dictionary):
+    """Save answer database to file"""
     save_name = 'answerdb'
     try:
         with open(save_name, 'wb') as file:
@@ -52,6 +53,7 @@ def save_answers_db(dictionary):
 
 
 def read_answer_keys():
+    """"Read the answers from CSV file"""
     input_name = 'gabarito.csv'
     header = True
     answer_keys = {}
@@ -143,8 +145,9 @@ def main():
     def edit():
         user = current_user.username
         try:
-            guesses_names = [guest for guest in answers_dict[user]]
-            return render_template('edit_main.html', guesses_names=guesses_names)
+            guests_usernames = [guest for guest in answers_dict[user]]
+            guests = [User.query.filter_by(username=username).first() for username in guests_usernames]
+            return render_template('edit_main.html', usernames=guests)
         except KeyError:
             flash('Você ainda não adicionou ninguém!')
             return redirect(url_for('profile_page'))
@@ -154,18 +157,22 @@ def main():
     @login_required
     def edit_guess(i):
         if request.method == 'GET':
-            return render_template('edit_person.html', guess=i)
+            guest = User.query.filter_by(username=i).first()
+            guess_alignment = answers_dict[current_user.username][guest.username]['alignment']
+            guess_character = answers_dict[current_user.username][guest.username]['character']
+            return render_template('edit_person.html', guess=guest, alignment=guess_alignment,
+                                   character = guess_character)
         else:
-            user_dict = answers_dict[current_user.username]
+            guest = User.query.filter_by(username=i).first().username
+
             form = request.form
             alignment = form['alignment']
             character = form['character']
-            user_dict[i] = {'alignment': alignment, 'character': character}
+
+            answers_dict[current_user.username][guest] = {'alignment': alignment, 'character': character}
             save_answers_db(answers_dict)
             flash('Convidado editado com sucesso')
             return redirect(url_for('profile_page'))
-
-
 
 
     app.run(host='192.168.0.97', debug=True)
