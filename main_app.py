@@ -1,23 +1,25 @@
-import sys
 import pickle
 
 from flask import Flask, render_template, request, url_for, redirect, flash
 from flask_login import UserMixin, LoginManager, login_user, current_user, login_required, logout_user
 from flask_sqlalchemy import SQLAlchemy
 
+# TODO: Create installer to the program
+# TODO: Add some statistics and fun facts to the final_score program
 
 app = Flask(__name__)
-user_db = SQLAlchemy(app)
-user_db.init_app(app)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.sqlite3'
 app.config['SECRET_KEY'] = 'secret-key-goes-here'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
+user_db = SQLAlchemy(app)
+user_db.init_app(app)
 
 login_manager = LoginManager()
 login_manager.login_view = '/'
 login_manager.init_app(app)
 
-# TODO: Create function to compute all points and sum up the results
 
 class User(UserMixin, user_db.Model):
     identifier = user_db.Column(user_db.Integer(), primary_key=True)
@@ -52,28 +54,8 @@ def save_answers_db(dictionary):
         print('Unexpected exception: ', error)
 
 
-def read_answer_keys():
-    """"Read the answers from CSV file"""
-    input_name = 'gabarito.csv'
-    header = True
-    answer_keys = {}
-    try:
-        with open(input_name) as file:
-            for line in file:
-                if header:
-                    header = False
-                else:
-                    values = line.strip().split(';')
-                    name, alignment, character = values
-                    answer_keys[name] = {'alignment': alignment, 'character': character}
-        return answer_keys
-    except FileNotFoundError:
-        print(f'Error: {input_name} file not found!')
-        sys.exit()
-
-
 def main():
-    answer_keys = read_answer_keys()
+
     user_db.create_all()
 
     answers_dict = init_answers_db('answerdb')
@@ -81,7 +63,6 @@ def main():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
-
 
     @app.route('/', methods=['GET', 'POST'])
     def index():
@@ -139,7 +120,6 @@ def main():
                 flash('Você já adicionou essa pessoa')
                 return redirect(url_for('add_guesses'))
 
-
     @app.route('/edit')
     @login_required
     def edit():
@@ -151,7 +131,6 @@ def main():
         except KeyError:
             flash('Você ainda não adicionou ninguém!')
             return redirect(url_for('profile_page'))
-
 
     @app.route('/edit/<i>', methods=['GET', 'POST'])
     @login_required
@@ -174,8 +153,7 @@ def main():
             flash('Convidado editado com sucesso')
             return redirect(url_for('profile_page'))
 
-
-    app.run(host='192.168.0.97', debug=True)
+    app.run(host='0.0.0.0', port=80)
 
 
 if __name__ == '__main__':
